@@ -1,0 +1,145 @@
+<UserControl x:Class="HalconWpf.Views.FlowView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:steps="clr-namespace:HalconWpf.Halcon.Steps"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="260">
+    <UserControl.Resources>
+        <!-- 按步骤类型自动选模板：选中什么步骤，参数区就显示什么控件 -->
+        <DataTemplate DataType="{x:Type steps:ThresholdStep}">
+            <Grid Margin="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="灰度下限" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Margin="4,2"
+                         Text="{Binding Min, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Grid.Column="2" Text="灰度上限" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                <TextBox Grid.Column="3" Margin="4,2"
+                         Text="{Binding Max, UpdateSourceTrigger=PropertyChanged}"/>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type steps:ConnectionStep}">
+            <TextBlock Text="无参数（对上一步区域做连通）" Foreground="#FF888888"
+                       FontStyle="Italic" Margin="4"/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type steps:SelectShapeStep}">
+            <Grid Margin="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="特征" VerticalAlignment="Center"
+                           ToolTip="Halcon select_shape 特征名，如 area / row / column / circularity"/>
+                <ComboBox Grid.Column="1" Margin="4,2" IsEditable="True"
+                          Text="{Binding Features, UpdateSourceTrigger=PropertyChanged}">
+                    <x:Array Type="{x:Type sys:String}">
+                        <sys:String>area</sys:String>
+                        <sys:String>row</sys:String>
+                        <sys:String>column</sys:String>
+                        <sys:String>width</sys:String>
+                        <sys:String>height</sys:String>
+                        <sys:String>circularity</sys:String>
+                        <sys:String>compactness</sys:String>
+                        <sys:String>elongation</sys:String>
+                        <sys:String>inner_radius</sys:String>
+                    </x:Array>
+                </ComboBox>
+                <TextBlock Grid.Column="2" Text="操作" VerticalAlignment="Center" Margin="8,0,0,0"
+                           ToolTip="特征组合关系；单特征时 and/or 等效"/>
+                <ComboBox Grid.Column="3" Margin="4,2"
+                          SelectedItem="{Binding Operate, Mode=TwoWay}">
+                    <x:Array Type="{x:Type sys:String}">
+                        <sys:String>and</sys:String>
+                        <sys:String>or</sys:String>
+                    </x:Array>
+                </ComboBox>
+                <TextBlock Grid.Row="1" Text="下限" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Margin="4,2"
+                         Text="{Binding Min, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="上限" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                <TextBox Grid.Row="1" Grid.Column="3" Margin="4,2"
+                         Text="{Binding Max, UpdateSourceTrigger=PropertyChanged}"/>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <DockPanel Margin="4">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 流程列表（内嵌步骤列表，点步骤选中它） -->
+            <ListBox Grid.Row="0" ItemsSource="{Binding Flows}" SelectedItem="{Binding SelectedFlow}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,2">
+                            <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                            <ListBox ItemsSource="{Binding Steps}"
+                                     SelectedItem="{Binding DataContext.SelectedStep,
+                                                       RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                     Margin="14,1,0,0" Padding="0"
+                                     BorderThickness="0" Background="Transparent"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel>
+                                            <Button DockPanel.Dock="Right" Content="✕" Padding="6,0"
+                                                    Margin="6,0,0,0" Cursor="Hand"
+                                                    BorderThickness="0" Background="Transparent"
+                                                    Foreground="#FFCC4444" FontWeight="Bold"
+                                                    ToolTip="删除此步骤"
+                                                    Command="{Binding DataContext.RemoveStepCommand,
+                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                            <TextBlock Text="{Binding Name}" Foreground="#FF666666"
+                                                       VerticalAlignment="Center"/>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- 步骤参数编辑区 -->
+            <GroupBox Grid.Row="1" Header="步骤参数" Margin="0,4,0,0">
+                <Grid MinHeight="36">
+                    <TextBlock Text="选中步骤后在此编辑参数" Foreground="#FF888888"
+                               FontStyle="Italic" HorizontalAlignment="Center"
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedStep}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <ContentControl Content="{Binding SelectedStep}"/>
+                </Grid>
+            </GroupBox>
+        </Grid>
+    </DockPanel>
+</UserControl>

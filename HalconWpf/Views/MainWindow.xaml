@@ -1,0 +1,62 @@
+﻿<Window x:Class="HalconWpf.MainWindow"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:views="clr-namespace:HalconWpf.Views"
+      mc:Ignorable="d"
+      Title="HalconWpf" Height="720" Width="1280"
+      WindowStartupLocation="CenterScreen">
+    <DockPanel>
+        <!-- 顶部工具栏 -->
+        <Border DockPanel.Dock="Top" Background="#FFF2F2F2" Padding="4,3"
+                BorderBrush="#FFD8D8D8" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="打开图片" Command="{Binding OpenImageCommand}" Background="#00000000"/>
+                <Menu Background="Transparent" Margin="8,0,0,0" VerticalAlignment="Center">
+                    <MenuItem Header="创建流程">
+                        <MenuItem Header="新建流程" Command="{Binding Flow.AddFlowCommand}"/>
+                        <MenuItem Header="删除流程" Command="{Binding Flow.RemoveFlowCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="阈值分割" Command="{Binding Flow.AddStepCommand}"
+                                  CommandParameter="Threshold" ToolTip="按灰度范围分割（参数默认 128~255）"/>
+                        <MenuItem Header="连通分割" Command="{Binding Flow.AddStepCommand}"
+                                  CommandParameter="Connection" ToolTip="拆成独立连通域，输出目标数量"/>
+                        <MenuItem Header="图形筛选" Command="{Binding Flow.AddStepCommand}"
+                                  CommandParameter="SelectShape" ToolTip="按面积筛选（参数默认 50~999999）"/>
+                    </MenuItem>
+                </Menu>
+
+                <Button Content="执行" Command="{Binding Flow.RunCommand}" Background="#00000000" Margin="4,0,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 底部状态栏 -->
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusText}"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock Text="{Binding Halcon.ImageInfo}"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalContentAlignment="Right">
+                <TextBlock Text="{Binding Halcon.MousePositionText}"/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <!-- 中间区域：左侧输出参数面板 + 右侧 Halcon 窗口 -->
+        <Grid Margin="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" MinWidth="180"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <views:OutputParamsView Grid.Column="0"/>
+            <GridSplitter Grid.Column="1" Width="5"
+                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                          Background="Transparent"/>
+            <views:HalconView DataContext="{Binding Halcon}" Grid.Column="2"/>
+        </Grid>
+    </DockPanel>
+</Window>
