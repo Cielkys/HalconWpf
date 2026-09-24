@@ -24,6 +24,9 @@ namespace HalconWpf.Halcon
         /// <summary>图像适应窗口显示。</summary>
         void FitWindow();
 
+        /// <summary>显示一帧相机图像（可从后台线程调用；首帧或尺寸变化自动适应窗口）。</summary>
+        void DisplayFrame(HObject frame);
+
         /// <summary>按顺序执行步骤，返回输出参数。步骤失败会抛出并带上步骤名。</summary>
         IReadOnlyList<OutputParameter> RunPipeline(IReadOnlyList<IVisionStep> steps);
     }

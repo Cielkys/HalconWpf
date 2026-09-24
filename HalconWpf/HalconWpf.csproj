@@ -13,9 +13,13 @@
       <HintPath>$(HALCONROOT)\bin\dotnet35\halcondotnet.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <Reference Include="MvCamCtrl.Net">
+      <HintPath>..\..\..\Program Files (x86)\MVS\Development\DotNet\win64\MvCamCtrl.Net.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="HandyControl" Version="3.5.1" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.*" />
   </ItemGroup>
 

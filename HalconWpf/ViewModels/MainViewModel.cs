@@ -2,6 +2,7 @@ using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HalconWpf.Halcon;
+using HalconWpf.Halcon.Camera;
 using HalconWpf.Models;
 using HalconWpf.Services;
 
@@ -30,10 +31,14 @@ namespace HalconWpf.ViewModels
             OutputParams = new OutputParamsViewModel();
             Halcon = new HalconViewModel(_halcon);
             Flow = new FlowViewModel(_halcon, OutputParams, message => StatusText = message);
+            Camera = new CameraViewModel(new CameraService(_halcon));
         }
 
         /// <summary>Halcon 子视图模型。</summary>
         public HalconViewModel Halcon { get; }
+
+        /// <summary>相机子视图模型。</summary>
+        public CameraViewModel Camera { get; }
 
         /// <summary>输出参数子视图模型。</summary>
         public OutputParamsViewModel OutputParams { get; }
@@ -54,18 +59,24 @@ namespace HalconWpf.ViewModels
             try
             {
                 var (name, width, height) = _halcon.Load(path);
-                Halcon.ImageInfo = $"{name}   {width} x {height}";
-                Halcon.FitWindowCommand.NotifyCanExecuteChanged();
-                OutputParams.SetParameters(new[]
-                {
-                    new OutputParameter("image_width", width),
-                    new OutputParameter("image_height", height),
-                });
+                ApplyImage(name, width, height);
             }
             catch (Exception ex)
             {
                 StatusText = $"打开图片失败: {ex.Message}";
             }
+        }
+
+        /// <summary>把取到的图回填状态栏、适应窗口按钮与尺寸参数。</summary>
+        private void ApplyImage(string name, int width, int height)
+        {
+            Halcon.ImageInfo = $"{name}   {width} x {height}";
+            Halcon.FitWindowCommand.NotifyCanExecuteChanged();
+            OutputParams.SetParameters(new[]
+            {
+                new OutputParameter("image_width", width),
+                new OutputParameter("image_height", height),
+            });
         }
 
         public void Dispose()

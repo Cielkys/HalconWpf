@@ -34,11 +34,11 @@ namespace HalconWpf.ViewModels
         [ObservableProperty]
         private VisionFlow? _selectedFlow;
 
-        /// <summary>当前选中的步骤（参数面板绑定它编辑参数）。</summary>
+        /// <summary>当前选中的步骤。</summary>
         [ObservableProperty]
         private IVisionStep? _selectedStep;
 
-        /// <summary>新建一条空流程（名字自动编号，不重名）。</summary>
+        /// <summary>新建一条空流程。</summary>
         [RelayCommand]
         private void AddFlow()
         {

@@ -64,6 +64,43 @@ namespace HalconWpf.Halcon
             _window.HalconWindow.FlushBuffer();
         }
 
+        /// <summary>显示一帧相机图像（可从后台线程调用；首帧或尺寸变化自动适应窗口）。</summary>
+        public void DisplayFrame(HObject frame)
+        {
+            if (_window == null || frame == null)
+            {
+                return;
+            }
+
+            // 采集循环在后台线程：WPF 依赖属性只能在 UI 线程改，统一调度过去
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher != null && !dispatcher.CheckAccess())
+            {
+                dispatcher.BeginInvoke(new Action(() => DisplayFrame(frame)));
+                return;
+            }
+
+            HImage image = frame as HImage ?? new HImage(frame);
+
+            // 首帧或尺寸变化才重新适应窗口，避免连续采集时用户缩放被重置
+            bool fit = true;
+            if (_image != null)
+            {
+                HOperatorSet.GetImageSize(_image, out HTuple oldW, out HTuple oldH);
+                HOperatorSet.GetImageSize(image, out HTuple newW, out HTuple newH);
+                fit = oldW.I != newW.I || oldH.I != newH.I;
+            }
+
+            _image?.Dispose();
+            _image = image;
+
+            if (fit)
+            {
+                _window.SetFullImagePart(_image);
+            }
+            Display();
+        }
+
         /// <summary>按顺序执行步骤：重绘底图 → foreach 执行 → 返回输出参数。</summary>
         public IReadOnlyList<OutputParameter> RunPipeline(IReadOnlyList<IVisionStep> steps)
         {

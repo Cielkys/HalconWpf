@@ -18,10 +18,14 @@
 ## 编码注意
 - **MVVM 框架（2026-09-22 定稿）**：一律用 `CommunityToolkit.Mvvm`（csproj 已引用 8.4.2）——ViewModel 继承框架 `ObservableObject` 并声明为 `partial class`，命令用 `[RelayCommand]` 源生成，**可通知属性一律用 `[ObservableProperty]` 源生成（写在字段上，类须 partial），不要手写 get + SetProperty 属性包装**（2026-09-22 用户指出"有框架怎么还在这样写"，ImageInfo/MousePositionText/StatusText 已改）；不要手写 ObservableObject/RelayCommand（自建的 `Infrastructure/` 已删除）。用户明确要求用现成框架而非自造轮子。
 - **架构定稿（2026-09-23 二次修正）**：**3 VM + Halcon 服务接口层、渲染零事件**——`MainViewModel`（组合根：StatusText、OpenImageCommand 委托、组合两个子 VM）+ `HalconViewModel`（图片业务：ImageInfo/MousePositionText/OpenImage/FitWindow 命令，ctor 注入 `IFileDialogService`、`IHalconService`、状态回调、加载完成回调）+ `OutputParamsViewModel`。**Halcon 操作（加载、阈值分割、连通域等）全部放 `Halcon/` 文件夹，VM 只通过 `IHalconService` 接口调用，接口加方法时实现放 `HalconService`。** 视图只做 Loaded 交窗口 + 鼠标转发，服务自己渲染（ImageLoaded/FitWindowRequested/StatusMessage 渲染事件已删，渲染不走事件）。模型 `OutputParameter`/`ParameterRow`（无 Index，数组值逗号拼接）。XAML 嵌套绑定 `Halcon.ImageInfo`，HalconView 子 `DataContext="{Binding Halcon}"`。**⚠️ 严禁主动合并这些 VM（用户两次强调过）。**
+- **命名约定（2026-09-24 用户纠正）**：右侧相机面板叫**"相机功能"**（实现相机各种功能的入口），不叫"相机视图"——界面标题、注释都用"相机功能"；"视图"一词仅保留在类名（`CameraView`/ViewModel）等代码标识符里。画面显示归 Halcon 窗口。
 - HTuple 有到 int/bool 的隐式转换，`Console.WriteLine(htuple)` 或字符串拼接易引发重载二义性，显式用 `.I/.D/.S`。
 - `HSmartWindowControlWPF` 关键 API：`HalconWindow`(HWindow)、`SetFullImagePart(HImage)`、`HImagePart`(Rect)、`HDisplayCurrentObject`、`HMouseMove` 事件参数含 Row/Column/X/Y/Delta/Button。
 
 ## 教学偏好（2026-09-22，重要）
 - 用户明确批评"直接给成品代码学不到东西"：**教学场景下不要贴完整代码**。正确方式 = 分课讲解原理 → 出练习题（给验收标准、允许查的 API、不许抄的部分）→ 用户自己写并贴回 → 逐行批改 → 进下一课。
 - 可以给：概念讲解、思路、API 线索、常见坑、自测问题；不给：可直接抄的完整实现。
+- **协作红线（2026-09-24 教训，用户发火"你乱改啥，我本就写好的"）**：
+  1. 用户手写的核心代码文件（如 `Halcon/Camera/*` 相机实现）**不要替他改**——哪怕读到磁盘是空壳/骨架也极可能是 **IDE 未保存**，先提醒等保存或直接只动自己创建的文件（XAML、组合根），不要基于"疑似没写"动手。
+  2. 每次动别人的文件前先 `read_file` 确认最新磁盘状态；他保存后磁盘会变，旧上下文作废。
 - Fsm 项目学习路线（7 课）：1) 串口收发+hex打印 2) 帧格式+模拟器发帧 3) 接收解析 4) 手写 CRC-16/MODBUS 5) 篡改字节实验 6) FSM(超时/防死循环) 7) Modbus 主从触发。
